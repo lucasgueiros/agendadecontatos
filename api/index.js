@@ -8,10 +8,6 @@ const port = 3000
 
 app.use(express.json());
 
-app.get('/', (req, res) => res.json({ message: 'Hello World' }))
-
-app.listen(port, () => console.log(`Example app listening on port ${port}!`))
-
 // NOME, SOBRENOME, TELEFONE, DATA DE NASCIMENTO, ENDERECO e EMAIL
 const Contato = sequelize.define('contato', {
 	nome: {
@@ -39,4 +35,58 @@ const Contato = sequelize.define('contato', {
 		allowNull: false
 	}
 });
-Contato.sync({ force: true });
+
+// criando REST API
+
+app.get('/v1/contatos', async (req, res) => {
+	try {
+		const contatos = await Contato.findAll();
+		res.json({contatos});
+	} catch (error) {
+		console.log(error);
+	}
+});
+
+app.post('/v1/contatos', async (req, res) => {
+	try {
+		const novo = new Contato(req.body);
+		await novo.save();
+		res.json(novo);
+	} catch (error) {
+		console.log(error);
+	}
+});
+
+app.get('/v1/contatos/:id', async (req, res) => {
+	try {
+		const contato = await Contato.findAll({where: {id: req.params.id}});
+		if(contato.length == 0) {
+			res.status(404).send('Contato não encontrado');
+		} else {
+			res.json(contato[0]);
+		}
+	} catch (error) {
+		console.log(error);
+	}
+});
+
+app.delete('/v1/contatos/:id', async (req, res) => {
+	try {
+		await Contato.destroy ({where: {id: req.params.id}});
+		res.status(204).send('Contato removido com sucesso');
+	} catch(error) {
+		console.log(error);
+	}
+});
+
+app.patch('/v1/contatos/:id', async (req,res) => {
+	try {
+		await Contato.update(req.body, {where: {id: req.params.id}});
+		res.status(204).send('Contato atualizado com sucesso');
+	} catch (error) {
+		console.log(error);
+	}
+		
+});
+
+app.listen(port, () => console.log(`Escutando na porta ${port}!`))
