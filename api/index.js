@@ -45,7 +45,7 @@ app.post('/v1/login/', async (req, res) => {
 	if(req.body.user == 'admin' && req.body.password == 'admin') {
 		const id = 232;
 		const token = jwt.sign({ id }, process.env.JWT_SECRET, {
-			        expiresIn: 600
+			        expiresIn: 604800 // uma semana
 			      });
 		console.log(token);
 		return res.json({user: req.body.user, status: 'authenticated', token: token});
@@ -65,7 +65,7 @@ function authorize(req, res, next) {
 	jwt.verify(token, process.env.JWT_SECRET, function(error, decoded) {
 		if (error) {
 			console.log(error);
-			return res.status(500).json({ error: 'Falha na autenticação.' });
+			return res.status(401).json({ error: 'Falha na autenticação.' });
 		}
 		next();
 	});
