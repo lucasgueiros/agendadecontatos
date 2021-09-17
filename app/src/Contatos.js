@@ -3,6 +3,15 @@ import {useState, useEffect, useReducer} from 'react';
 import {useRestResource} from './generics';
 import {Button, CloseButton, Card, CardColumns, Collapse, Modal, Form} from 'react-bootstrap';
 
+function ordenarPorNome(a,b) {
+  const c = a.nome.localeCompare(b.nome);
+  if(c==0) {
+    return a.sobrenome.localeCompare(b.sobrenome);
+  } else {
+    return c;
+  }
+}
+
 export const Contatos = (props) => {
   const [auth] = useAuth();
   const [data, fetch, dispatch] = useRestResource('contatos', auth.config);
@@ -16,12 +25,13 @@ export const Contatos = (props) => {
     <h1>Contatos</h1>
     <ContatoEditorModal editing={editing} dispatchResource={dispatch} setEditing={setEditing}/>
     <CardColumns>
-      {data.map((contato) => <ContatoCard contato={contato} setEditing={setEditing} dispatchResource={dispatch}/>)}
       <Card>
         <Button variant="primary" onClick={(e) => {
           setEditing({});
         }}>Adicionar contato</Button>
       </Card>
+      {data.sort(ordenarPorNome).map((contato) => <ContatoCard contato={contato} setEditing={setEditing} dispatchResource={dispatch}/>)}
+
     </CardColumns>
     </>
   );
@@ -119,7 +129,7 @@ const ContatoEditorModal = ({editing, dispatchResource, setEditing}) => {
           </Form.Group>
           <Form.Group controlId="dataDeNascimento" className="mb-3">
             <Form.Label>Data de Nascimento</Form.Label>
-            <Form.Control type="text"
+            <Form.Control type="date"
               value={state.dataDeNascimento}
               onChange={(e) => dispatch({action: 'change', data: {dataDeNascimento: e.target.value}})}/>
           </Form.Group>
@@ -131,7 +141,7 @@ const ContatoEditorModal = ({editing, dispatchResource, setEditing}) => {
           </Form.Group>
           <Form.Group controlId="email" className="mb-3">
             <Form.Label>E-mail</Form.Label>
-            <Form.Control type="text"
+            <Form.Control type="email"
               value={state.email}
               onChange={(e) => dispatch({action: 'change', data: {email: e.target.value}})}/>
           </Form.Group>
