@@ -5,7 +5,7 @@ const dotenv = require('dotenv-safe');
 const jwt = require('jsonwebtoken');
 
 dotenv.config();
-const sequelize = new Sequelize('postgres://usuario:senha@localhost:5432/sereducacional')
+const sequelize = new Sequelize('postgres://usuario:senha@db:5432/sereducacional')
 const app = express()
 const port = 8080
 app.use(cors());

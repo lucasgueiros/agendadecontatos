@@ -1,0 +1,32 @@
+version: '3.9'
+
+volumes:
+  postgres_data:
+      driver: local
+services:
+  db:
+      image: postgres
+      volumes:
+        - ./dbdata:/var/lib/postgresql/data
+      environment:
+        POSTGRES_DB: sereducacional
+        POSTGRES_USER: usuario
+        POSTGRES_PASSWORD: senha
+  api:
+    env_file:
+        "./api/.env.example"
+    build:
+      context: ./api
+      dockerfile: ./Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+  app:
+    build:
+      context: ./app
+      dockerfile: ./Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
