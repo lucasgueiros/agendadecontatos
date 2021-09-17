@@ -1,12 +1,14 @@
 const express = require('express')
+const cors = require('cors');
 const Sequelize = require('sequelize')
-const dotenv = require("dotenv-safe");
+const dotenv = require('dotenv-safe');
 const jwt = require('jsonwebtoken');
 
 dotenv.config();
 const sequelize = new Sequelize('postgres://usuario:senha@localhost:5432/sereducacional')
 const app = express()
-const port = 3000
+const port = 8080
+app.use(cors());
 app.use(express.json());
 
 // NOME, SOBRENOME, TELEFONE, DATA DE NASCIMENTO, ENDERECO e EMAIL
@@ -30,7 +32,7 @@ const Contato = sequelize.define('contato', {
 	endereco:{
 		type: Sequelize.STRING,
 		allowNull: false
-	}, 
+	},
 	email:{
 		type: Sequelize.STRING,
 		allowNull: false
@@ -42,10 +44,11 @@ const Contato = sequelize.define('contato', {
 app.post('/v1/login/', async (req, res) => {
 	if(req.body.user == 'admin' && req.body.password == 'admin') {
 		const id = 232;
-		const token = jwt.sign({ id }, process.env.SECRET, {
+		const token = jwt.sign({ id }, process.env.JWT_SECRET, {
 			        expiresIn: 600
 			      });
-		return res.json({user: user, status: 'authenticated', token: token});
+		console.log(token);
+		return res.json({user: req.body.user, status: 'authenticated', token: token});
 
 	} else {
 		res.status(401).json({error: 'Usuário ou senha incorreto.'});
@@ -53,12 +56,15 @@ app.post('/v1/login/', async (req, res) => {
 });
 
 function authorize(req, res, next) {
-	const token = req.headers['x-access-token'];
+	let token = req.headers['authorization'];
 	if (!token) {
 		return res.status(401).json({ error: 'É necessário autenticar-se para realizar essa operação.' });
 	}
+	token = token.slice(7);
+	console.log(token);
 	jwt.verify(token, process.env.JWT_SECRET, function(error, decoded) {
 		if (error) {
+			console.log(error);
 			return res.status(500).json({ error: 'Falha na autenticação.' });
 		}
 		next();
@@ -115,7 +121,7 @@ app.patch('/v1/contatos/:id', authorize, async (req,res) => {
 	} catch (error) {
 		console.log(error);
 	}
-		
+
 });
 
 app.listen(port, () => console.log(`Escutando na porta ${port}!`))
