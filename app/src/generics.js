@@ -15,15 +15,7 @@ export function usePersistedState(key, defaultValue) {
 function theFetch (name, config, setData) {
   axios.get('/' + name, config).then(
     (r) => {
-      setData(r.data[name].map((d) => {
-        return {
-          ...d,
-          _delete: async () => {
-            await axios.delete('/' + name + '/' + d.id, config);
-            theFetch(name, config, setData);
-          }
-        }
-      }));
+      setData(r.data[name]);
     }, (e) => {
       console.log(e);
     }
@@ -34,16 +26,25 @@ export function useRestResource(name, config) {
   const [data, setData] = useState();
   const fetch = () => theFetch(name, config, setData);
   useEffect(fetch, [config, name]);
-  const create = (data) => {
-    axios.post('/' + name, data,config).then(
-      (r) => {
-        console.log(r);
-        fetch();
-      }, (e) => {
-        console.log(e);
-      }
-    )
+  const dispatch = async (action) => {
+    switch (action.action) {
+      case 'delete':
+        await axios.delete('/' + name + '/' + action.data.id, config);
+        theFetch(name, config, setData);
+        break;
+      case 'save':
+        if(action.data.id) {
+          await axios.patch('/'+name+'/'+action.data.id, action.data, config);
+        } else {
+          await axios.post('/'+name, action.data, config);
+        }
+        theFetch(name, config, setData);
+      default:
+
+    }
+
   };
 
-  return [data, fetch, create];
+
+  return [data, fetch, dispatch];
 }
