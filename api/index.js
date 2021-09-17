@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 dotenv.config();
 const sequelize = new Sequelize('postgres://usuario:senha@db:5432/sereducacional')
 const app = express()
-const port = 8080
+const port = 5000
 app.use(cors());
 app.use(express.json());
 
@@ -38,6 +38,7 @@ const Contato = sequelize.define('contato', {
 		allowNull: false
 	}
 });
+Contato.sync({ force: false });
 
 // Autenticacao
 
