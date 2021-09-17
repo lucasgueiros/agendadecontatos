@@ -12,7 +12,7 @@ export function usePersistedState(key, defaultValue) {
   return [state, setState];
 }
 
-function fetch (name, config, setData) {
+function theFetch (name, config, setData) {
   axios.get('/' + name, config).then(
     (r) => {
       setData(r.data[name].map((d) => {
@@ -20,7 +20,7 @@ function fetch (name, config, setData) {
           ...d,
           _delete: async () => {
             await axios.delete('/' + name + '/' + d.id, config);
-            fetch();
+            theFetch(name, config, setData);
           }
         }
       }));
@@ -32,7 +32,18 @@ function fetch (name, config, setData) {
 
 export function useRestResource(name, config) {
   const [data, setData] = useState();
+  const fetch = () => theFetch(name, config, setData);
+  useEffect(fetch, [config, name]);
+  const create = (data) => {
+    axios.post('/' + name, data,config).then(
+      (r) => {
+        console.log(r);
+        fetch();
+      }, (e) => {
+        console.log(e);
+      }
+    )
+  };
 
-  useEffect(() => fetch(name, config, setData), [config, name]);
-  return [data, fetch];
+  return [data, fetch, create];
 }
