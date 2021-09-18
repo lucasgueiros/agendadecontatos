@@ -29,15 +29,46 @@ export function useRestResource(name, config) {
   const dispatch = async (action) => {
     switch (action.action) {
       case 'delete':
-        await axios.delete('/' + name + '/' + action.data.id, config);
-        theFetch(name, config, setData);
+        axios.delete('/' + name + '/' + action.data.id, config).then((r) => {
+          theFetch(name, config, setData);
+          if(action.notify) {
+            action.notify('Contato apagado com sucesso','primary');
+          }
+        }, (e) => {
+          if(action.notify) {
+            action.notify('Erro ao apagar o contato','danger');
+          }
+        });
+
+
         break;
       case 'save':
         if(action.data.id) {
-          await axios.patch('/'+name+'/'+action.data.id, action.data, config);
+          axios.patch('/'+name+'/'+action.data.id, action.data, config).then(
+            (r) => {
+              if(action.notify) {
+                action.notify('Contato atualizado com sucesso','primary');
+              }
+            }, (e) => {
+              if(action.notify) {
+                action.notify('Erro ao atualizar o contato','danger');
+              }
+            }
+          );
         } else {
-          await axios.post('/'+name, action.data, config);
+          await axios.post('/'+name, action.data, config).then(
+            (r) => {
+              if(action.notify) {
+                action.notify('Contato salvo com sucesso','primary');
+              }
+            }, (e) => {
+              if(action.notify) {
+                action.notify('Erro ao salvar o contato','danger');
+              }
+            }
+          );
         }
+
         theFetch(name, config, setData);
       default:
 
