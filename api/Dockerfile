@@ -1,11 +1,8 @@
-FROM node:12.18.3
+FROM node:14-alpine
 
-WORKDIR .
-
-COPY ["package.json", "package-lock.json", "./"]
-RUN npm install --production
-COPY . .
-
+WORKDIR /src
+ENV NODE_ENV=production
+COPY . /src
+RUN npm ci
 EXPOSE 5000
-
 CMD ["node", "index.js"]
