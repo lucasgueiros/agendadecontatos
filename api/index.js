@@ -84,8 +84,33 @@ app.get('/v1/contatos', authorize, async (req, res) => {
 			]
 		};
 
-		const contatos = await Contato.findAll(query);
-		res.json({contatos});
+		if(req.query.size) {
+			if(req.query.size < 1) {
+				res.status(422).json({error: 'O parâmetro \'size\' deve ser maior ou igual a um.'});
+				return;
+			}
+			query.limit = req.query.size;
+		}
+		if(req.query.page) {
+			if(req.query.page < 1) {
+				res.status(422).json({error: 'O parâmetro \'page\' deve ser maior ou igual a um.'});
+				return;
+			}
+			query.offset = (req.query.page-1) * req.query.size;
+		}
+
+		const {rows,count} = await Contato.findAndCountAll(query);
+		let total = count;
+		let size = total;
+		if(query.limit) {
+			size = query.limit;
+		}
+		let page = 1;
+		if(query.offset) {
+			page = req.query.page;
+		}
+		const contatos = rows.map((row) => row.dataValues);
+		res.json({contatos, size: size, total: '' + total, page: '' + page});
 	} catch (error) {
 		console.log(error);
 	}
@@ -133,4 +158,4 @@ app.patch('/v1/contatos/:id', authorize, async (req,res) => {
 
 });
 
-app.listen(port, () => console.log(`Escutando na porta ${port}!`))
+app.listen(port, () => console.log(`Escutando na porta ${port}.`))
