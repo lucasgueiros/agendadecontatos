@@ -1,5 +1,5 @@
 import {useState, useEffect} from 'react';
-import {usePersistedState} from './generics.js';
+import {usePersistedState, useNotification} from './generics.js';
 import axios from 'axios';
 import {Modal, Form, Button, Nav} from 'react-bootstrap';
 
@@ -18,11 +18,11 @@ export function useAuth() {
     config: config,
   });
 
-  const login = (user,password) => {
+  const login = (username,password) => {
     const http = axios.create({...config});
 
     http.post('login', {
-      username: user,
+      username: username,
       password: password
     }).then((r) => {
       const Authorization = 'Bearer ' + r.data.token;
@@ -49,14 +49,24 @@ export function useAuth() {
     });
   };
 
-  return [auth, login, logout];
+  const register = async (username,password) => {
+    const http = axios.create({...config});
+    return await http.post('register', {
+      username: username,
+      password: password
+    });
+  }
+
+  return [auth, login, logout, register];
 }
 
 export const Auth = (props) => {
-  const [auth, login, logout] = useAuth();
+  const [auth, login, logout, register] = useAuth();
   const [username,setUsername] = useState('');
   const [password,setPassword] = useState('');
   const [show, setShow] = useState(false);
+  const [Notification, notify] = useNotification();
+
   useEffect(() => {
     if(auth.status != 'authenticated') {
       setShow(true);
@@ -78,6 +88,7 @@ export const Auth = (props) => {
         <Modal.Title>Autenticação</Modal.Title>
       </Modal.Header>
       <Modal.Body>
+        <Notification/>
         <Form>
           <Form.Group controlId="username" className="mb-3">
             <Form.Label>Usuário</Form.Label>
@@ -92,6 +103,15 @@ export const Auth = (props) => {
           <Button variant="primary" onClick={(e) => {
             login(username,password);
           }}>Entrar</Button>
+          {' '}
+          <Button variant="primary" onClick={(e) => {
+            register(username,password).then((r) => {
+              notify('Cadastrado com sucesso.', 'primary');
+              login(username,password);
+            }, (e) => {
+              notify('Erro ao cadastrar novo usuário.', 'danger');
+            });
+          }}>Registrar</Button>
         </Form>
       </Modal.Body>
     </Modal>

@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react';
 import axios from 'axios';
+import {Collapse, Alert} from 'react-bootstrap';
 
 // from https://dev.to/selbekk/persisting-your-react-state-in-9-lines-of-code-9go
 export function usePersistedState(key, defaultValue) {
@@ -78,4 +79,21 @@ export function useRestResource(name, config) {
 
 
   return [data, fetch, dispatch];
+}
+
+export function useNotification () {
+  const [showNotification, setShowNotification] = useState(false);
+  const [notification, setNotification] = useState('');
+  const [notificationVariant, setNotificationVariant] = useState('primary');
+
+  const notify = (message,variant) => {
+    setNotification(message);
+    setNotificationVariant(variant);
+    setShowNotification(true);
+    setTimeout(() => setShowNotification(false), 3000);
+  }
+
+  const Notification = (props) => <Collapse in={showNotification}><div><Alert variant={notificationVariant}>{notification}</Alert></div></Collapse>;
+
+  return [Notification, notify];
 }

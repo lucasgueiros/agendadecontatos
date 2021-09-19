@@ -1,22 +1,13 @@
 import {useAuth} from './Auth.js';
 import {useState, useEffect, useReducer} from 'react';
-import {useRestResource} from './generics';
+import {useRestResource, useNotification} from './generics';
 import {Alert, Button, CloseButton, Card, CardColumns, Collapse, Modal, Form} from 'react-bootstrap';
 
 export const Contatos = (props) => {
   const [auth] = useAuth();
   const [data, fetch, dispatch] = useRestResource('contatos', auth.config);
   const [editing, setEditing] = useState(null);
-  const [showNotification, setShowNotification] = useState(false);
-  const [notification, setNotification] = useState('');
-  const [notificationVariant, setNotificationVariant] = useState('primary');
-
-  const notify = (message,variant) => {
-    setNotification(message);
-    setNotificationVariant(variant);
-    setShowNotification(true);
-    setTimeout(() => setShowNotification(false), 3000);
-  }
+  const [Notification, notify] = useNotification();
 
   if(!data) {
     return <>Carregando</>
@@ -25,7 +16,7 @@ export const Contatos = (props) => {
     <>
     <h1>Contatos</h1>
 
-    <Notification show={showNotification} variant={notificationVariant} message={notification} />
+    <Notification />
 
     <ContatoEditorModal editing={editing} dispatchResource={dispatch} setEditing={setEditing} notify={notify}/>
     <CardColumns>
@@ -172,5 +163,3 @@ const ContatoEditorModal = ({editing, dispatchResource, setEditing, notify}) => 
     </Modal>
   </>;
 }
-
-const Notification = ({show, message, variant}) => <Collapse in={show}><div><Alert variant={variant}>{message}</Alert></div></Collapse>;
