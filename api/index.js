@@ -101,8 +101,14 @@ app.post('/v1/login/', async (req, res) => {
 				const user = users[0];
 				bcrypt.compare(req.body.password, user.hashedPassword).then ((result) => {
 					if(result) {
-						const id = user.id;
-						const token = jwt.sign({ id }, process.env.JWT_SECRET, {
+						const iat = new Date().getTime() / 1000;
+						const payload = {
+							iss: 'localhost',
+							sub: user.id,
+							iat: iat
+						};
+						console.log(iat);
+						const token = jwt.sign(payload, process.env.JWT_SECRET, {
 							        expiresIn: 604800 // uma semana
 							      });
 						return res.json({username: user.username, status: 'authenticated', token: token});
@@ -115,18 +121,6 @@ app.post('/v1/login/', async (req, res) => {
 			res.status(401).json({error: 'Usuário ou senha incorreto.'});
 		})
 	}
-
-/*	if(req.body.username == 'admin' && req.body.password == 'admin') {
-		const id = 232;
-		const token = jwt.sign({ id }, process.env.JWT_SECRET, {
-			        expiresIn: 604800 // uma semana
-			      });
-		console.log(token);
-		return res.json({username: req.body.username, status: 'authenticated', token: token});
-
-	} else {
-		res.status(401).json({error: 'Usuário ou senha incorreto.'});
-	}*/
 });
 
 function authorize(req, res, next) {
@@ -140,7 +134,7 @@ function authorize(req, res, next) {
 			console.log(error);
 			return res.status(401).json({ error: 'Falha na autenticação.' });
 		}
-		res.locals.userId = decoded.id;
+		res.locals.userId = decoded.sub;
 		next();
 	});
 }
