@@ -13,7 +13,7 @@ import {
 const App = () => {
   return (
       <Router>
-        <div className="container">
+        <div className="container" style={{'width': '70%'}}>
           <Navbar bg="primary" variant="dark" expand="sm">
             <Container>
               <Navbar.Brand as={Link} to="/">Agenda de contatos</Navbar.Brand>
