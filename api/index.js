@@ -172,15 +172,18 @@ app.get('/v1/contatos', authorize, async (req, res) => {
 		const {rows,count} = await Contato.findAndCountAll(query);
 		let total = count;
 		let size = total;
+		let totalPages = 1;
 		if(query.limit) {
 			size = query.limit;
+			totalPages = total / size;
 		}
 		let page = 1;
+
 		if(query.offset) {
 			page = req.query.page;
 		}
 		const contatos = rows.map((row) => row.dataValues);
-		res.json({contatos, size: size, total: '' + total, page: '' + page});
+		res.json({contatos, size: size, total: '' + total, page: '' + page, totalPages: '' + totalPages});
 	} catch (error) {
 		console.log(error);
 	}

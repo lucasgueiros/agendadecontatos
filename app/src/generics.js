@@ -13,19 +13,24 @@ export function usePersistedState(key, defaultValue) {
   return [state, setState];
 }
 
-function theFetch (name, config, setData) {
-  axios.get('/' + name, config).then(
-    (r) => {
-      setData(r.data[name]);
-    }, (e) => {
-      console.log(e);
-    }
-  )
-}
-
 export function useRestResource(name) {
   const [data, setData] = useState();
-  const fetch = (config) => theFetch(name, config, setData);
+  const [size, setSize] = useState(20);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const fetch = (config) => {
+    let theSize = size ? size : 20;
+    axios.get('/' + name + '?size=' + theSize + '&page=' + page, config).then(
+      (r) => {
+        setData(r.data[name]);
+        setTotalPages(r.data.totalPages);
+      }, (e) => {
+        console.log(e);
+      }
+    )
+  };
+
   const dispatch = async (action, config) => {
     switch (action.action) {
       case 'delete':
@@ -70,12 +75,19 @@ export function useRestResource(name) {
             }
           );
         }
+        break;
+      case 'setSize':
+        setSize(action.size);
+        break;
+      case 'setPage':
+        setPage(action.page);
+        break;
       default:
 
     }
 
   };
-  return [data, fetch, dispatch];
+  return [data, fetch, dispatch, size, page, totalPages];
 }
 
 export function useNotification () {

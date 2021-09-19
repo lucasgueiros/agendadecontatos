@@ -1,13 +1,13 @@
 import {useAuth} from './Auth.js';
 import {useState, useEffect, useReducer} from 'react';
 import {useRestResource, useNotification} from './generics';
-import {Alert, Button, CloseButton, Card, CardColumns, Collapse, Modal, Form} from 'react-bootstrap';
+import {Alert, Button, CloseButton, Card, CardColumns, Collapse, Modal, Form, Pagination} from 'react-bootstrap';
 
 export const Contatos = ({auth}) => {
-  const [data, fetch, dispatchResource] = useRestResource('contatos');
+  const [data, fetch, dispatchResource, size, page, totalPages] = useRestResource('contatos');
   const [editing, setEditing] = useState(null);
   const [Notification, notify] = useNotification();
-  useEffect(() => fetch(auth.config),[auth]);
+  useEffect(() => fetch(auth.config),[auth, size, page]);
 
   if(!data) {
     return <>Carregando</>
@@ -19,6 +19,15 @@ export const Contatos = ({auth}) => {
     <Notification />
 
     <ContatoEditorModal editing={editing} dispatchResource={dispatchResource} auth={auth} setEditing={setEditing} notify={notify}/>
+
+    <Form>
+      <Form.Group className="mb-2" controlId="size">
+        <Form.Label>Itens por página</Form.Label>
+        <Form.Control  type="number" value={size} min={1}
+         onChange={(event) => dispatchResource({action: 'setSize', size: event.target.value}, auth.config) } />
+      </Form.Group>
+    </Form>
+
     <CardColumns>
       <Card>
         <Button variant="primary" onClick={(e) => {
@@ -28,9 +37,22 @@ export const Contatos = ({auth}) => {
       {data.map((contato) => <ContatoCard contato={contato} setEditing={setEditing} dispatchResource={dispatchResource} auth={auth} notify={notify}/>)}
 
     </CardColumns>
+    <ThePagination dispatchResource={dispatchResource} totalPages={totalPages}/>
     </>
   );
 };
+
+const ThePagination = ({totalPages, dispatchResource}) => {
+  let items = [];
+  for(let i=1; i <= totalPages; i++ ){
+    items.push(<Pagination.Item key={i} onClick={(e) => {
+      dispatchResource({action: 'setPage', page: i})
+    }}>{i}</Pagination.Item>);
+  }
+  return <Pagination size="sm" className="justify-content-md-center">
+    {items}
+  </Pagination>;
+}
 
 // NOME, SOBRENOME, TELEFONE, DATA DE NASCIMENTO, ENDERECO e EMAIL
 const ContatoCard = ({contato,setEditing,dispatchResource, notify, auth}) => {
