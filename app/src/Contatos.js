@@ -3,13 +3,11 @@ import {useState, useEffect, useReducer} from 'react';
 import {useRestResource, useNotification} from './generics';
 import {Alert, Button, CloseButton, Card, CardColumns, Collapse, Modal, Form} from 'react-bootstrap';
 
-export const Contatos = (props) => {
-  const [auth] = useAuth();
-  const [data, fetch, dispatch] = useRestResource('contatos');
+export const Contatos = ({auth}) => {
+  const [data, fetch, dispatchResource] = useRestResource('contatos');
   const [editing, setEditing] = useState(null);
   const [Notification, notify] = useNotification();
-  useEffect(() => fetch(auth.config),[auth.config]);
-  const dispatchResource = (action) => dispatchResource(action, auth.config);
+  useEffect(() => fetch(auth.config),[auth]);
 
   if(!data) {
     return <>Carregando</>
@@ -20,14 +18,14 @@ export const Contatos = (props) => {
 
     <Notification />
 
-    <ContatoEditorModal editing={editing} dispatchResource={dispatch} setEditing={setEditing} notify={notify}/>
+    <ContatoEditorModal editing={editing} dispatchResource={dispatchResource} auth={auth} setEditing={setEditing} notify={notify}/>
     <CardColumns>
       <Card>
         <Button variant="primary" onClick={(e) => {
           setEditing({});
         }}>Adicionar contato</Button>
       </Card>
-      {data.map((contato) => <ContatoCard contato={contato} setEditing={setEditing} dispatchResource={dispatch} notify={notify}/>)}
+      {data.map((contato) => <ContatoCard contato={contato} setEditing={setEditing} dispatchResource={dispatchResource} auth={auth} notify={notify}/>)}
 
     </CardColumns>
     </>
@@ -35,7 +33,7 @@ export const Contatos = (props) => {
 };
 
 // NOME, SOBRENOME, TELEFONE, DATA DE NASCIMENTO, ENDERECO e EMAIL
-const ContatoCard = ({contato,setEditing,dispatchResource, notify}) => {
+const ContatoCard = ({contato,setEditing,dispatchResource, notify, auth}) => {
   const [open, setOpen] = useState(false);
   return <>
     <Card body onClick={() => {if(!open) setOpen(true)}}>
@@ -66,14 +64,14 @@ const ContatoCard = ({contato,setEditing,dispatchResource, notify}) => {
           <Button varian="primary"
             onClick={(e) => {setEditing(contato)}}>Editar</Button>{' '}
           <Button varian="primary"
-            onClick={(e) => {setOpen(false); dispatchResource({action: 'delete', data: contato, notify: notify})}}>Excluir</Button>
+            onClick={(e) => {setOpen(false); dispatchResource({action: 'delete', data: contato, notify: notify}, auth.config)}}>Excluir</Button>
         </div>
       </Collapse>
     </Card>
   </>;
 }
 
-const ContatoEditorModal = ({editing, dispatchResource, setEditing, notify}) => {
+const ContatoEditorModal = ({editing, dispatchResource, setEditing, notify, auth}) => {
   const [state, dispatch] = useReducer((state, action) => {
     switch (action.action) {
       case 'substitute':
@@ -157,7 +155,7 @@ const ContatoEditorModal = ({editing, dispatchResource, setEditing, notify}) => 
               onChange={(e) => dispatch({action: 'change', data: {email: e.target.value}})}/>
           </Form.Group>
           <Button variant="primary" onClick={(e) => {
-            dispatchResource({action: 'save', data: state, notify: notify});
+            dispatchResource({action: 'save', data: state, notify: notify }, auth.config);
             setEditing(null);
           }}>Salvar</Button>
         </Form>

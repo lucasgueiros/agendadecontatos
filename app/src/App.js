@@ -1,6 +1,6 @@
 import './App.css';
 import {Container, Row, Col, Navbar, Nav, NavDropdown} from 'react-bootstrap';
-import {Auth, useAuth} from './Auth.js';
+import {useAuth} from './Auth.js';
 import {Contatos} from './Contatos';
 
 import {
@@ -11,6 +11,7 @@ import {
 } from "react-router-dom";
 
 const App = () => {
+  const [auth, Authentication] = useAuth();
   return (
       <Router>
         <div className="container" style={{'width': '70%'}}>
@@ -24,14 +25,14 @@ const App = () => {
                   <Nav.Link as={Link} to="/contatos">Contatos</Nav.Link>
                 </Nav>
                 <Nav>
-                  <Auth/>
+                  <Authentication/>
                 </Nav>
               </Navbar.Collapse>
             </Container>
           </Navbar>
           <Switch>
             <Route path="/contatos">
-              <Contatos/>
+              <Contatos auth={auth}/>
             </Route>
             <Route path="/">
               <h1>Welcome</h1>

@@ -13,10 +13,29 @@ const config = {
 };
 
 export function useAuth() {
-  const [auth, setAuth] = usePersistedState('api',  {
+  const [auth, setAuth] = useState({
     status: 'unauthenticated',
     config: config,
   });
+
+  useEffect(()=>{
+    const username = localStorage.getItem('username');
+    const token = localStorage.getItem('authorization');
+    if(username && token) {
+      const Authorization = 'Bearer ' + token;
+      setAuth({
+        status: 'authenticated',
+        username: username,
+        config: {
+          ...config,
+          headers: {
+            ...config.headers,
+            Authorization: Authorization,
+          }
+        }
+      });
+    }
+  },[]);
 
   const login = (username,password) => {
     const http = axios.create({...config});
@@ -25,6 +44,8 @@ export function useAuth() {
       username: username,
       password: password
     }).then((r) => {
+      localStorage.setItem('username', r.data.username);
+      localStorage.setItem('authorization', r.data.token);
       const Authorization = 'Bearer ' + r.data.token;
       setAuth({
         status: 'authenticated',
@@ -43,6 +64,8 @@ export function useAuth() {
   };
 
   const logout = () => {
+    localStorage.removeItem('username');
+    localStorage.removeItem('authorization');
     setAuth({
       status: 'unauthenticated',
       config: config,
@@ -57,11 +80,12 @@ export function useAuth() {
     });
   }
 
-  return [auth, login, logout, register];
+  const AuthComponent = (props) => <Auth auth={auth} login={login} logout={logout} register={register}/>;
+
+  return [auth, AuthComponent];
 }
 
-export const Auth = (props) => {
-  const [auth, login, logout, register] = useAuth();
+const Auth = ({auth,login,logout,register}) => {
   const [username,setUsername] = useState('');
   const [password,setPassword] = useState('');
   const [show, setShow] = useState(false);
