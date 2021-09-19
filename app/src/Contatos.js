@@ -5,9 +5,11 @@ import {Alert, Button, CloseButton, Card, CardColumns, Collapse, Modal, Form} fr
 
 export const Contatos = (props) => {
   const [auth] = useAuth();
-  const [data, fetch, dispatch] = useRestResource('contatos', auth.config);
+  const [data, fetch, dispatch] = useRestResource('contatos');
   const [editing, setEditing] = useState(null);
   const [Notification, notify] = useNotification();
+  useEffect(() => fetch(auth.config),[auth.config]);
+  const dispatchResource = (action) => dispatchResource(action, auth.config);
 
   if(!data) {
     return <>Carregando</>

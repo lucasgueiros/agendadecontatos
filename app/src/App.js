@@ -14,7 +14,7 @@ const App = () => {
   return (
       <Router>
         <div className="container" style={{'width': '70%'}}>
-          <Navbar bg="primary" variant="dark" expand="sm">
+          <Navbar bg="primary" variant="dark" expand="md">
             <Container>
               <Navbar.Brand as={Link} to="/">Agenda de contatos</Navbar.Brand>
               <Navbar.Toggle aria-controls="responsive-navbar-nav" />

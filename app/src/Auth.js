@@ -1,7 +1,7 @@
 import {useState, useEffect} from 'react';
 import {usePersistedState, useNotification} from './generics.js';
 import axios from 'axios';
-import {Modal, Form, Button, Nav} from 'react-bootstrap';
+import {Modal, Form, Button, Nav, Navbar} from 'react-bootstrap';
 
 const baseURL = 'http://localhost:5000/v1/';
 const config = {
@@ -77,6 +77,7 @@ export const Auth = (props) => {
   let Authentication = () => <></>;
   if(show == false) {
     Authentication = () => <>
+      <Navbar.Text style={{'color':'#fff', 'text-align':'center'}}>Olá, {auth.username + ' '} </Navbar.Text>
       <Button variant="primary" onClick={(e) => logout()}>Sair</Button>
     </>;
   }

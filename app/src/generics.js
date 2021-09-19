@@ -23,15 +23,14 @@ function theFetch (name, config, setData) {
   )
 }
 
-export function useRestResource(name, config) {
+export function useRestResource(name) {
   const [data, setData] = useState();
-  const fetch = () => theFetch(name, config, setData);
-  useEffect(fetch, [config, name]);
-  const dispatch = async (action) => {
+  const fetch = (config) => theFetch(name, config, setData);
+  const dispatch = async (action, config) => {
     switch (action.action) {
       case 'delete':
         axios.delete('/' + name + '/' + action.data.id, config).then((r) => {
-          theFetch(name, config, setData);
+          fetch(config);
           if(action.notify) {
             action.notify('Contato apagado com sucesso','primary');
           }
@@ -50,7 +49,7 @@ export function useRestResource(name, config) {
               if(action.notify) {
                 action.notify('Contato atualizado com sucesso','primary');
               }
-              theFetch(name, config, setData);
+              fetch(config);
             }, (e) => {
               if(action.notify) {
                 action.notify('Erro ao atualizar o contato','danger');
@@ -63,7 +62,7 @@ export function useRestResource(name, config) {
               if(action.notify) {
                 action.notify('Contato salvo com sucesso','primary');
               }
-              theFetch(name, config, setData);
+              fetch(config);
             }, (e) => {
               if(action.notify) {
                 action.notify('Erro ao salvar o contato','danger');
@@ -76,8 +75,6 @@ export function useRestResource(name, config) {
     }
 
   };
-
-
   return [data, fetch, dispatch];
 }
 
