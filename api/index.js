@@ -76,7 +76,15 @@ function authorize(req, res, next) {
 
 app.get('/v1/contatos', authorize, async (req, res) => {
 	try {
-		const contatos = await Contato.findAll();
+		// Construindo consulta
+		let query = {
+			order: [
+				// por padrão, ordene por nome e sobrenome
+				['nome','ASC'],['sobrenome','ASC']
+			]
+		};
+
+		const contatos = await Contato.findAll(query);
 		res.json({contatos});
 	} catch (error) {
 		console.log(error);

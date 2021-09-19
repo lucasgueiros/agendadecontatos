@@ -3,15 +3,6 @@ import {useState, useEffect, useReducer} from 'react';
 import {useRestResource} from './generics';
 import {Alert, Button, CloseButton, Card, CardColumns, Collapse, Modal, Form} from 'react-bootstrap';
 
-function ordenarPorNome(a,b) {
-  const c = a.nome.localeCompare(b.nome);
-  if(c==0) {
-    return a.sobrenome.localeCompare(b.sobrenome);
-  } else {
-    return c;
-  }
-}
-
 export const Contatos = (props) => {
   const [auth] = useAuth();
   const [data, fetch, dispatch] = useRestResource('contatos', auth.config);
@@ -43,7 +34,7 @@ export const Contatos = (props) => {
           setEditing({});
         }}>Adicionar contato</Button>
       </Card>
-      {data.sort(ordenarPorNome).map((contato) => <ContatoCard contato={contato} setEditing={setEditing} dispatchResource={dispatch} notify={notify}/>)}
+      {data.map((contato) => <ContatoCard contato={contato} setEditing={setEditing} dispatchResource={dispatch} notify={notify}/>)}
 
     </CardColumns>
     </>
