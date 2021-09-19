@@ -22,13 +22,13 @@ export function useAuth() {
     const http = axios.create({...config});
 
     http.post('login', {
-      user: user,
+      username: user,
       password: password
     }).then((r) => {
       const Authorization = 'Bearer ' + r.data.token;
       setAuth({
         status: 'authenticated',
-        user: r.data.user,
+        username: r.data.username,
         config: {
           ...config,
           headers: {
@@ -54,7 +54,7 @@ export function useAuth() {
 
 export const Auth = (props) => {
   const [auth, login, logout] = useAuth();
-  const [user,setUser] = useState('');
+  const [username,setUsername] = useState('');
   const [password,setPassword] = useState('');
   const [show, setShow] = useState(false);
   useEffect(() => {
@@ -79,10 +79,10 @@ export const Auth = (props) => {
       </Modal.Header>
       <Modal.Body>
         <Form>
-          <Form.Group controlId="user" className="mb-3">
+          <Form.Group controlId="username" className="mb-3">
             <Form.Label>Usuário</Form.Label>
             <Form.Control type="text" placeholder="Digite aqui seu usuário"
-              onChange={(e) => setUser(e.target.value)}/>
+              onChange={(e) => setUsername(e.target.value)}/>
           </Form.Group>
           <Form.Group controlId="password" className="mb-3">
             <Form.Label>Senha</Form.Label>
@@ -90,7 +90,7 @@ export const Auth = (props) => {
               onChange={(e) => setPassword(e.target.value)}/>
           </Form.Group>
           <Button variant="primary" onClick={(e) => {
-            login(user,password);
+            login(username,password);
           }}>Entrar</Button>
         </Form>
       </Modal.Body>

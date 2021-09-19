@@ -49,6 +49,7 @@ export function useRestResource(name, config) {
               if(action.notify) {
                 action.notify('Contato atualizado com sucesso','primary');
               }
+              theFetch(name, config, setData);
             }, (e) => {
               if(action.notify) {
                 action.notify('Erro ao atualizar o contato','danger');
@@ -61,6 +62,7 @@ export function useRestResource(name, config) {
               if(action.notify) {
                 action.notify('Contato salvo com sucesso','primary');
               }
+              theFetch(name, config, setData);
             }, (e) => {
               if(action.notify) {
                 action.notify('Erro ao salvar o contato','danger');
@@ -68,8 +70,6 @@ export function useRestResource(name, config) {
             }
           );
         }
-
-        theFetch(name, config, setData);
       default:
 
     }

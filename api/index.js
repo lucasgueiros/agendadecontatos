@@ -3,6 +3,7 @@ const cors = require('cors');
 const Sequelize = require('sequelize')
 const dotenv = require('dotenv-safe');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 dotenv.config();
 const sequelize = new Sequelize(process.env.DBURL)
@@ -10,6 +11,19 @@ const app = express()
 const port = 5000
 app.use(cors());
 app.use(express.json());
+
+// Usuários
+const User = sequelize.define('user', {
+	username: {
+		type: Sequelize.STRING,
+		allowNull: false,
+		unique: true,
+	},
+	hashedPassword: {
+		type: Sequelize.STRING,
+		allowNull: false
+	},
+});
 
 // NOME, SOBRENOME, TELEFONE, DATA DE NASCIMENTO, ENDERECO e EMAIL
 const Contato = sequelize.define('contato', {
@@ -36,24 +50,83 @@ const Contato = sequelize.define('contato', {
 	email:{
 		type: Sequelize.STRING,
 		allowNull: false
-	}
+	},
 });
-Contato.sync({ force: false });
+Contato.belongsTo(User, {
+	foreignKey: {
+    name: 'ownerId'
+  }
+});
+
+// Configurando BD
+(async () => {
+	await User.sync({force: true});
+	await Contato.sync({ force: true });
+	// Verifique se existe ao menos um Usuário
+	User.findAll().then((users) => {
+		if(users.length == 0){
+			console.log("Nenhum usuário cadastrado, irei criar admin com a senha admin");
+			const hashed = bcrypt.hashSync('admin',10);
+			const admin = new User ({
+				username: 'admin',
+				hashedPassword: hashed
+			});
+			admin.save().then((r) => {
+				console.log("Admin com senha admin criado com sucesso");
+			});
+		}
+	});
+})();
 
 // Autenticacao
+app.post('/v1/register/', async (req, res) => {
+	try {
+		const hashed = bcrypt.hashSync(req.body.password,10);
+		const novo = new User({
+			username: req.body.username,
+			hashedPassword: hashed
+		});
+
+		await novo.save();
+		res.json(novo);
+	} catch (error) {
+		console.log(error);
+	}
+})
 
 app.post('/v1/login/', async (req, res) => {
-	if(req.body.user == 'admin' && req.body.password == 'admin') {
+	if(req.body.username && req.body.password) {
+		User.findAll({where: { username: req.body.username }}).then((users) => {
+			if(users.length == 1) {
+				const user = users[0];
+				bcrypt.compare(req.body.password, user.hashedPassword).then ((result) => {
+					if(result) {
+						const id = user.id;
+						const token = jwt.sign({ id }, process.env.JWT_SECRET, {
+							        expiresIn: 604800 // uma semana
+							      });
+						return res.json({username: user.username, status: 'authenticated', token: token});
+					} else {
+						res.status(401).json({error: 'Usuário ou senha incorreto.'});
+					}
+				})
+			}
+		}, (e) => {
+			res.status(401).json({error: 'Usuário ou senha incorreto.'});
+		})
+	}
+
+/*	if(req.body.username == 'admin' && req.body.password == 'admin') {
 		const id = 232;
 		const token = jwt.sign({ id }, process.env.JWT_SECRET, {
 			        expiresIn: 604800 // uma semana
 			      });
 		console.log(token);
-		return res.json({user: req.body.user, status: 'authenticated', token: token});
+		return res.json({username: req.body.username, status: 'authenticated', token: token});
 
 	} else {
 		res.status(401).json({error: 'Usuário ou senha incorreto.'});
-	}
+	}*/
 });
 
 function authorize(req, res, next) {
@@ -62,12 +135,12 @@ function authorize(req, res, next) {
 		return res.status(401).json({ error: 'É necessário autenticar-se para realizar essa operação.' });
 	}
 	token = token.slice(7);
-	console.log(token);
 	jwt.verify(token, process.env.JWT_SECRET, function(error, decoded) {
 		if (error) {
 			console.log(error);
 			return res.status(401).json({ error: 'Falha na autenticação.' });
 		}
+		res.locals.userId = decoded.id;
 		next();
 	});
 }
@@ -78,6 +151,9 @@ app.get('/v1/contatos', authorize, async (req, res) => {
 	try {
 		// Construindo consulta
 		let query = {
+			where: {
+				ownerId: res.locals.userId
+			},
 			order: [
 				// por padrão, ordene por nome e sobrenome
 				['nome','ASC'],['sobrenome','ASC']
@@ -118,7 +194,10 @@ app.get('/v1/contatos', authorize, async (req, res) => {
 
 app.post('/v1/contatos', authorize, async (req, res) => {
 	try {
-		const novo = new Contato(req.body);
+		const novo = new Contato({
+			...req.body,
+			ownerId: res.locals.userId
+		});
 		await novo.save();
 		res.json(novo);
 	} catch (error) {
@@ -128,7 +207,7 @@ app.post('/v1/contatos', authorize, async (req, res) => {
 
 app.get('/v1/contatos/:id', authorize, async (req, res) => {
 	try {
-		const contato = await Contato.findAll({where: {id: req.params.id}});
+		const contato = await Contato.findAll({where: {id: req.params.id, ownerId: res.locals.userId }});
 		if(contato.length == 0) {
 			res.status(404).json({error: 'Contato não encontrado'});
 		} else {
@@ -141,7 +220,7 @@ app.get('/v1/contatos/:id', authorize, async (req, res) => {
 
 app.delete('/v1/contatos/:id', authorize, async (req, res) => {
 	try {
-		await Contato.destroy ({where: {id: req.params.id}});
+		await Contato.destroy ({where: {id: req.params.id, ownerId: res.locals.userId}});
 		res.status(204).json({error: 'Contato removido com sucesso'});
 	} catch(error) {
 		console.log(error);
@@ -150,7 +229,7 @@ app.delete('/v1/contatos/:id', authorize, async (req, res) => {
 
 app.patch('/v1/contatos/:id', authorize, async (req,res) => {
 	try {
-		await Contato.update(req.body, {where: {id: req.params.id}});
+		await Contato.update(req.body, {where: {id: req.params.id, ownerId: res.locals.userId}});
 		res.status(204).json({error: 'Contato atualizado com sucesso'});
 	} catch (error) {
 		console.log(error);
