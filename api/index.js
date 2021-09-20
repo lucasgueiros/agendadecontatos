@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 dotenv.config();
-console.log('DBURL is '+process.env.DBURL);
+
 const sequelize = new Sequelize(process.env.DBURL, {
 	retry: {
 		max: Infinity,
