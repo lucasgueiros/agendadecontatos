@@ -6,7 +6,17 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 dotenv.config();
-const sequelize = new Sequelize(process.env.DBURL)
+console.log('DBURL is '+process.env.DBURL);
+const sequelize = new Sequelize(process.env.DBURL, {
+	retry: {
+		max: Infinity,
+		match: [/SequelizeConnectionRefusedError/],
+		backoffBase: 1000,
+		backoffExponent: 1.0,
+		report: (message, conf) => console.log('Tentando nova conexão: ' + message),
+		name: 'Sequelize Connection Retry'
+	}
+});
 const app = express()
 const port = 5000
 app.use(cors());
@@ -60,8 +70,8 @@ Contato.belongsTo(User, {
 
 // Configurando BD
 (async () => {
-	await User.sync({force: true});
-	await Contato.sync({ force: true });
+	await User.sync({force: false});
+	await Contato.sync({ force: false });
 	// Verifique se existe ao menos um Usuário
 	User.findAll().then((users) => {
 		if(users.length == 0){

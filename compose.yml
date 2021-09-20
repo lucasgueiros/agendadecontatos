@@ -14,7 +14,7 @@ services:
         POSTGRES_PASSWORD: senha
   api:
     env_file:
-        "./api/.env.example"
+        "./api/.env"
     build:
       context: ./api
       dockerfile: ./Dockerfile

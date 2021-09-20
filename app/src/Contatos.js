@@ -1,13 +1,12 @@
-import {useAuth} from './Auth.js';
 import {useState, useEffect, useReducer} from 'react';
 import {useRestResource, useNotification} from './generics';
-import {Alert, Button, CloseButton, Card, CardColumns, Collapse, Modal, Form, Pagination} from 'react-bootstrap';
+import {Button, CloseButton, Card, CardColumns, Collapse, Modal, Form, Pagination} from 'react-bootstrap';
 
 export const Contatos = ({auth}) => {
   const [data, fetch, dispatchResource, size, page, totalPages] = useRestResource('contatos');
   const [editing, setEditing] = useState(null);
   const [Notification, notify] = useNotification();
-  useEffect(() => fetch(auth.config),[auth, size, page]);
+  useEffect(() => fetch(auth.config),[auth, size, page, fetch]);
 
   if(!data) {
     return <>Carregando</>
@@ -100,7 +99,6 @@ const ContatoEditorModal = ({editing, dispatchResource, setEditing, notify, auth
         return action.data;
       case 'change':
         return {...state, ...action.data};
-        break;
       default:
         return state;
     }
@@ -133,7 +131,7 @@ const ContatoEditorModal = ({editing, dispatchResource, setEditing, notify, auth
   }, [editing]);
 
   return <>
-    <Modal show={state._status != 'closed'} onHide={() => setEditing(null )}>
+    <Modal show={state._status !== 'closed'} onHide={() => setEditing(null )}>
       <Modal.Header>
         <Modal.Title>Novo Contato</Modal.Title>
         <CloseButton onClick={() => setEditing(null)}/>

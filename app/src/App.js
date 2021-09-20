@@ -1,5 +1,5 @@
 import './App.css';
-import {Container, Row, Col, Navbar, Nav, NavDropdown} from 'react-bootstrap';
+import {Container, Navbar, Nav} from 'react-bootstrap';
 import {useAuth} from './Auth.js';
 import {Contatos} from './Contatos';
 
