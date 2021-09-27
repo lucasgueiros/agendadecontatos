@@ -9,14 +9,14 @@ services:
       volumes:
         - ./dbdata:/var/lib/postgresql/data
       environment:
-        POSTGRES_DB: sereducacional
+        POSTGRES_DB: listadecontatos
         POSTGRES_USER: usuario
         POSTGRES_PASSWORD: senha
   api:
     env_file:
         "./api/.env"
     environment:
-       DBURL: postgres://usuario:senha@db:5432/sereducacional
+       DBURL: postgres://usuario:senha@db:5432/listadecontatos
     build:
       context: ./api
       dockerfile: ./Dockerfile
